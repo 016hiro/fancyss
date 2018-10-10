@@ -284,15 +284,15 @@ update_config(){
 get_v2ray_remote_config(){
 	decode_link="$1"
 	v2ray_group="$2"
-	v2ray_v=$(echo "$decode_link" |jq -r .v)
-	v2ray_ps=$(echo "$decode_link" |jq -r .ps)
-	v2ray_add=$(echo "$decode_link" |jq -r .add)
-	v2ray_port=$(echo "$decode_link" |jq -r .port)
-	v2ray_id=$(echo "$decode_link" |jq -r .id)
-	v2ray_aid=$(echo "$decode_link" |jq -r .aid)
-	v2ray_net=$(echo "$decode_link" |jq -r .net)
-	v2ray_type=$(echo "$decode_link" |jq -r .type)
-	v2ray_tls_tmp=$(echo "$decode_link" |jq -r .tls)
+	v2ray_v=$(echo "$decode_link" | jq -r .v)
+	v2ray_ps=$(echo "$decode_link" | jq -r .ps | sed 's/[ \t]*//g')
+	v2ray_add=$(echo "$decode_link" | jq -r .add | sed 's/[ \t]*//g')
+	v2ray_port=$(echo "$decode_link" | jq -r .port | sed 's/[ \t]*//g')
+	v2ray_id=$(echo "$decode_link" | jq -r .id | sed 's/[ \t]*//g')
+	v2ray_aid=$(echo "$decode_link" | jq -r .aid | sed 's/[ \t]*//g')
+	v2ray_net=$(echo "$decode_link" | jq -r .net)
+	v2ray_type=$(echo "$decode_link" | jq -r .type)
+	v2ray_tls_tmp=$(echo "$decode_link" | jq -r .tls)
 	[ "$v2ray_tls_tmp"x == "tls"x ] && v2ray_tls="tls" || v2ray_tls="none"
 	
 	if [ "$v2ray_v" == "2" ];then
@@ -593,6 +593,9 @@ get_type_name() {
 get_oneline_rule_now(){
 	# ss订阅
 	ssr_subscribe_link="$1"
+	LINK_FORMAT=`echo "$ssr_subscribe_link" | grep -E "^http://|^https://"`
+	[ -z "$LINK_FORMAT" ] && return 4
+	
 	echo_date "开始更新在线订阅列表..." 
 	echo_date "开始下载订阅链接到本地临时文件，请稍等..."
 	rm -rf /tmp/ssr_subscribe_file* >/dev/null 2>&1
@@ -794,6 +797,13 @@ start_update(){
 			;;
 		3)
 			echo_date "该订阅链接不包含任何节点信息！请检查你的服务商是否更换了订阅链接！"
+			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
+			let DEL_SUBSCRIBE+=1
+			sleep 2
+			echo_date "退出订阅程序..."
+			;;
+		4)
+			echo_date "订阅地址错误！检测到你输入的订阅地址并不是标准网址格式！"
 			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
 			let DEL_SUBSCRIBE+=1
 			sleep 2
